@@ -1,7 +1,7 @@
 import type { Gender, SpeechPart } from '../core/types';
 import { useApp } from '../core/store';
 import { plainForVoice } from './ssml';
-import { chunkText, edgeTtsUrl, EDGE_TTS_MAX_CHARS, netTtsUrl } from './netTts';
+import { chunkText, edgeTtsUrl, EDGE_TTS_MAX_CHARS, netTtsUrl, seTtsUrl } from './netTts';
 // OWNER: voice worker. Keep these exports and signatures exactly (SpeakOpts, speak, stopSpeech, estimateDuration).
 //
 // Sources, in order (see docs/voice.md):
@@ -830,7 +830,7 @@ async function playEdge(text: string, s: Session): Promise<boolean> {
   return any;
 }
 
-function playNet(text: string, s: Session): Promise<boolean> {
+function playNet(text: string, s: Session, urlFor: (chunk: string) => string = netTtsUrl): Promise<boolean> {
   if (!isBrowser || typeof Audio === 'undefined') return Promise.resolve(false);
   const chunks = chunkText(plainForVoice(text));
   if (!chunks.length) return Promise.resolve(false);
@@ -853,7 +853,7 @@ function playNet(text: string, s: Session): Promise<boolean> {
     const mk = (chunk: string) => {
       const a = new Audio();
       a.preload = 'auto';
-      a.src = netTtsUrl(chunk);
+      a.src = urlFor(chunk);
       return a;
     };
     let next: HTMLAudioElement | null = chunks.length ? mk(chunks[0]) : null;
@@ -959,11 +959,11 @@ function playTimed(text: string, s: Session): Promise<boolean> {
 /* ------------------------------------------------------------------ public API */
 
 /** Which source the last speak() used (for dev pages and tests). */
-export let lastSource: 'recorded' | 'live' | 'edge' | 'tts' | 'net' | 'timed' | null = null;
+export let lastSource: 'recorded' | 'live' | 'edge' | 'tts' | 'net' | 'se' | 'timed' | null = null;
 
-export type VoiceTier = 'recorded' | 'edge' | 'tts' | 'net';
+export type VoiceTier = 'recorded' | 'edge' | 'tts' | 'net' | 'se';
 /** The one place that sets the order of voice sources (live audio always goes first, the timed mouth last). */
-export const VOICE_TIER_ORDER: VoiceTier[] = ['recorded', 'edge', 'tts', 'net'];
+export const VOICE_TIER_ORDER: VoiceTier[] = ['recorded', 'edge', 'tts', 'net', 'se'];
 /** Tier that produced the last line (null before any, 'timed' = silent mouth). */
 export function getVoiceTier(): typeof lastSource {
   return lastSource;
@@ -1006,6 +1006,9 @@ export async function speak(opts: SpeakOpts): Promise<void> {
       } else if (tier === 'net' && text.trim()) {
         played = await playNet(text, s);
         if (played) lastSource = 'net';
+      } else if (tier === 'se' && text.trim()) {
+        played = await playNet(text, s, seTtsUrl);
+        if (played) lastSource = 'se';
       }
     }
     if (!played && !s.aborted) {

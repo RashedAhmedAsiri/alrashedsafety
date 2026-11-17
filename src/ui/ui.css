@@ -114,168 +114,240 @@
   position: fixed;
   inset: 0;
   z-index: 70;
-  background: var(--paper);
+  background: linear-gradient(180deg, #fff8ec 0%, #f6ead6 100%);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(24px, 6vh, 56px);
+  gap: clamp(14px, 3.4vh, 30px);
+  padding: 16px;
   transition: opacity 650ms ease;
 }
 .ld.is-out {
   opacity: 0;
   pointer-events: none;
 }
-.ld-title {
+.ld-glow {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(120vw, 900px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(20, 184, 166, 0.3), rgba(20, 184, 166, 0.12) 55%, transparent 100%);
+  animation: ldGlow 3600ms ease-in-out infinite alternate;
+}
+@keyframes ldGlow {
+  from { transform: translate(-50%, -50%) scale(0.94); }
+  to { transform: translate(-50%, -50%) scale(1.06); }
+}
+.ld-dots i {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #14b8a6;
+  opacity: 0.18;
+  left: calc(6% + var(--i) * 10.5%);
+  animation: ldFloat 4200ms ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -430ms);
+}
+.ld-dots i:nth-child(3n) { background: #ffc62b; width: 10px; height: 10px; opacity: 0.35; }
+.ld-dots i:nth-child(3n + 1) { background: #f0476b; width: 8px; height: 8px; opacity: 0.25; }
+@keyframes ldFloat {
+  from { transform: translateY(0); }
+  to { transform: translateY(-18px); }
+}
+.ld-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(4px, 1.4vh, 12px);
-  min-height: calc(var(--logo-h) + 72px);
-  max-width: calc(100vw - 32px);
+  gap: clamp(2px, 1vh, 8px);
   text-align: center;
+  max-width: calc(100vw - 32px);
 }
-.ld-line {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 0.32em;
+.ld-stage {
+  position: relative;
+  width: clamp(120px, 26vh, 210px);
+  aspect-ratio: 220 / 230;
+}
+.ld-bot {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: ldBob 2200ms ease-in-out infinite;
+  filter: drop-shadow(0 8px 0 rgba(30, 42, 59, 0.06));
+}
+.ld-shadow {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -4%;
+  height: 8%;
+  border-radius: 50%;
+  background: rgba(30, 42, 59, 0.16);
+  animation: ldShadow 2200ms ease-in-out infinite;
+}
+@keyframes ldBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes ldShadow {
+  0%, 100% { transform: scaleX(1); opacity: 1; }
+  50% { transform: scaleX(0.82); opacity: 0.6; }
+}
+.ld-bot-eyes {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ldBlink 4200ms infinite;
+}
+@keyframes ldBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+}
+.ld-bot-head {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ldTilt 3400ms ease-in-out infinite alternate;
+}
+@keyframes ldTilt {
+  from { transform: rotate(-2.5deg); }
+  to { transform: rotate(2.5deg); }
+}
+.ld-bot-wave {
+  transform-box: fill-box;
+  transform-origin: 50% 8%;
+}
+.ld-bot.is-done .ld-bot-wave {
+  animation: ldWave 520ms ease-in-out 2 alternate;
+}
+@keyframes ldWave {
+  from { transform: rotate(0); }
+  to { transform: rotate(-38deg); }
+}
+.ld-logo {
+  animation: ldPop 700ms var(--spring) both;
+}
+.ld.is-done .ld-logo {
+  animation: ldPop 700ms var(--spring) both;
+}
+@keyframes ldPop {
+  0% { opacity: 0; transform: translateY(18px) scale(0.7); }
+  100% { opacity: 1; transform: none; }
+}
+.ld-sub {
   font-weight: 700;
-  font-size: clamp(24px, 4.4vw, 46px);
+  font-size: clamp(18px, 3.2vw, 30px);
   line-height: 1.3;
   color: var(--ink);
+  margin-top: -10px;
+  animation: ldFade 600ms 300ms ease both;
 }
-.ld-w {
-  display: inline-block;
-  opacity: 0;
-  transform-origin: 50% 90%;
-  animation:
-    wIn 520ms var(--spring) both,
-    wOut 420ms ease-in both;
-  animation-delay: calc(var(--i) * 230ms), 3300ms;
-}
-.ld-title.is-final .ld-w {
-  animation: wFinal 720ms var(--spring) both;
-  animation-delay: calc(var(--i) * 70ms);
-}
-@keyframes wIn {
-  0% {
-    opacity: 0;
-    transform: translateY(28px) scale(0.6);
-  }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes wOut {
-  from {
-    opacity: 1;
-    transform: none;
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.96);
-  }
-}
-@keyframes wFinal {
-  0% {
-    opacity: 1;
-    transform: none;
-  }
-  35% {
-    opacity: 1;
-    transform: translateY(-16px) scale(1.12);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
+@keyframes ldFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
-.road {
-  --road-w: min(560px, calc(100vw - 32px - 112px));
+.ld-meter {
   position: relative;
-  width: calc(var(--road-w) + 112px);
-  height: 104px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(560px, calc(100vw - 32px));
   direction: ltr;
 }
-.road-strip {
-  position: absolute;
-  left: 56px;
-  right: 56px;
-  bottom: 18px;
-  height: 34px;
-  border-radius: 17px;
-  background: #3d4a5e;
-  box-shadow: 0 6px 0 #2b3546;
-  overflow: hidden;
+.ld-flag {
+  flex: none;
+  line-height: 0;
 }
-.road-strip::before {
-  content: '';
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 15px;
-  height: 4px;
-  border-radius: 2px;
-  background: repeating-linear-gradient(90deg, #ffd34d 0 18px, transparent 18px 32px);
+.ld-bar {
+  position: relative;
+  flex: 1;
+  height: 26px;
+  border-radius: 13px;
+  background: #fff;
+  border: 3px solid #e3d6bf;
+  box-shadow: inset 0 3px 0 rgba(30, 42, 59, 0.06);
 }
-.road-done {
+.ld-fill {
   position: absolute;
   top: 0;
-  bottom: 0;
   right: 0;
-  background: #4d5c73;
+  bottom: 0;
+  min-width: 14px;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.28) 0 10px, transparent 10px 20px),
+    linear-gradient(90deg, #14b8a6, #3fd6c4);
+  background-size: 28px 28px, 100% 100%;
+  animation: ldStripes 900ms linear infinite;
   transition: width 420ms linear;
 }
-.road-end {
+@keyframes ldStripes {
+  to { background-position: 28px 0, 0 0; }
+}
+.ld-bus {
   position: absolute;
-  bottom: 22px;
+  bottom: 10px;
+  width: 0;
+  height: 0;
+  transition: left 420ms linear;
 }
-.road-end--school {
-  left: 0;
-}
-.road-end--home {
-  right: 0;
-}
-.bus {
+.ld-bus svg {
   position: absolute;
-  bottom: 40px;
-  left: 56px;
-  width: 96px;
-  height: 58px;
-  transition: transform 420ms linear;
-  will-change: transform;
-}
-.bus svg {
+  left: -36px;
+  bottom: 0;
   display: block;
   animation: busBob 360ms ease-in-out infinite alternate;
 }
-.ld.is-done .bus svg {
+.ld.is-done .ld-bus svg {
   animation: busArrive 520ms var(--spring) both;
 }
 @keyframes busBob {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2px);
-  }
+  from { transform: translateY(0); }
+  to { transform: translateY(-2px); }
 }
 @keyframes busArrive {
-  0% {
-    transform: translateY(0) rotate(0);
-  }
-  40% {
-    transform: translateY(-6px) rotate(-3deg);
-  }
-  100% {
-    transform: none;
-  }
+  0% { transform: translateY(0) rotate(0); }
+  40% { transform: translateY(-6px) rotate(-3deg); }
+  100% { transform: none; }
+}
+.ld-foot {
+  position: relative;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ld-tip {
+  margin: 0;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid #e3d6bf;
+  font-weight: 500;
+  font-size: clamp(15px, 2.4vw, 20px);
+  color: var(--ink-2);
+  text-align: center;
+  max-width: calc(100vw - 32px);
+  animation: ldFade 420ms ease both;
+}
+.ld-tip.is-ready {
+  background: #14b8a6;
+  border-color: #0b8c7e;
+  color: #fff;
+  font-weight: 700;
+}
+@media (max-height: 420px) {
+  .ld { flex-direction: row; flex-wrap: wrap; align-content: center; column-gap: 28px; }
+  .ld-foot { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-bot, .ld-shadow, .ld-bot-eyes, .ld-bot-head, .ld-glow, .ld-dots i, .ld-fill, .ld-bus svg { animation: none; }
 }
 
 /* ------------------------------------------------------------------ menu */

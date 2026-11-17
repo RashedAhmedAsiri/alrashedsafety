@@ -15,6 +15,10 @@ export function edgeTtsUrl(text: string): string {
   return `${EDGE_TTS_ENDPOINT}?voice=ar-SA-HamedNeural&text=${encodeURIComponent(text)}`;
 }
 
+/** Last online fallback: Amazon Polly's Arabic voice through the free StreamElements endpoint (no key, plain MP3). */
+export const SE_TTS_ENDPOINT = 'https://api.streamelements.com/kappa/v2/speech?voice=Zeina&text=';
+export const seTtsUrl = (chunk: string): string => SE_TTS_ENDPOINT + encodeURIComponent(chunk);
+
 export function netTtsUrl(chunk: string): string {
   return NET_TTS_ENDPOINT + encodeURIComponent(chunk);
 }
