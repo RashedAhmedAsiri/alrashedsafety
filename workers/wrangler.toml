@@ -1,0 +1,19 @@
+# Cloudflare Worker for the Alrashed app (free plan). See docs/deploy.md for the step-by-step.
+name = "alrashed-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Replace the id with the one printed by:  npx wrangler d1 create alrashed-results
+[[d1_databases]]
+binding = "DB"
+database_name = "alrashed-results"
+database_id = "REPLACE_WITH_DATABASE_ID"
+
+[vars]
+# Gemini model alias (the latest Flash). Change here when Google renames it.
+GEMINI_MODEL = "gemini-flash-latest"
+# The address of your website (Cloudflare Pages), e.g. https://alrashed.pages.dev . "*" allows any site.
+ALLOWED_ORIGIN = "*"
+
+# Secrets (never written in this file). Set each with:  npx wrangler secret put NAME
+#   GEMINI_API_KEY, AZURE_SPEECH_KEY, AZURE_SPEECH_REGION, ADMIN_PIN

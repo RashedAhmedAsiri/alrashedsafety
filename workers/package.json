@@ -1,0 +1,12 @@
+{
+  "name": "alrashed-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "npx wrangler deploy",
+    "dev": "npx wrangler dev",
+    "db": "npx wrangler d1 execute alrashed-results --remote --file=schema.sql",
+    "typecheck": "npx tsc -p . --noEmit"
+  }
+}
