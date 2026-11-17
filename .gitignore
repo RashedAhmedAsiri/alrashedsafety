@@ -5,3 +5,4 @@ dist
 shots
 workers/node_modules
 workers/.wrangler
+public/audio/voice

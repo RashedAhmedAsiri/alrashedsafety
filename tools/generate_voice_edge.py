@@ -126,6 +126,7 @@ async def main(argv=None) -> int:
     ap.add_argument("--voice", default=VOICE_ROBOT)
     ap.add_argument("--voice-girl", default=None, help="voice for the .g files (default: same as --voice)")
     ap.add_argument("--retries", type=int, default=3)
+    ap.add_argument("--jobs", type=int, default=6, help="parallel requests")
     args = ap.parse_args(argv)
 
     jobs = [j for j in load_jobs(args.lines) if j["key"].startswith(args.only)]
@@ -139,32 +140,37 @@ async def main(argv=None) -> int:
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     manifest = {"version": 1, "keys": {}}
-    made = skipped = failed = 0
-    for j in jobs:
+    counts = {"made": 0, "skipped": 0, "failed": 0}
+    gate = asyncio.Semaphore(args.jobs)
+
+    async def one(j) -> bool:
         mp3, js = OUT_DIR / f"{j['key']}.{j['v']}.mp3", OUT_DIR / f"{j['key']}.{j['v']}.json"
         if not args.force and mp3.exists() and js.exists():
-            skipped += 1
-        else:
-            voice = (args.voice_girl or args.voice) if j["v"] == "g" else args.voice
-            ok = False
+            counts["skipped"] += 1
+            return True
+        voice = (args.voice_girl or args.voice) if j["v"] == "g" else args.voice
+        async with gate:
             for attempt in range(args.retries):
                 try:
                     mp3.parent.mkdir(parents=True, exist_ok=True)
                     await synth(j["spoken"], voice, mp3)
                     pcm = decode_pcm(mp3)
                     js.write_text(json.dumps(envelope_to_visemes(pcm) if pcm else estimated_visemes(j["spoken"])), encoding="utf-8")
-                    ok = True
-                    break
+                    counts["made"] += 1
+                    print(f"ok {j['key']}.{j['v']}", flush=True)
+                    return True
                 except Exception as e:  # network hiccup: retry
-                    print(f"retry {j['key']}.{j['v']} ({attempt + 1}): {e}")
+                    print(f"retry {j['key']}.{j['v']} ({attempt + 1}): {e}", flush=True)
                     await asyncio.sleep(1.5 * (attempt + 1))
-            if not ok:
-                failed += 1
-                print(f"FAILED {j['key']}.{j['v']}")
-                continue
-            made += 1
-            print(f"ok {j['key']}.{j['v']}")
-        manifest["keys"].setdefault(j["key"], []).append(j["v"])
+        counts["failed"] += 1
+        print(f"FAILED {j['key']}.{j['v']}", flush=True)
+        return False
+
+    results = await asyncio.gather(*(one(j) for j in jobs))
+    for j, ok in zip(jobs, results):
+        if ok:
+            manifest["keys"].setdefault(j["key"], []).append(j["v"])
+    made, skipped, failed = counts["made"], counts["skipped"], counts["failed"]
     (OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print(f"done: {made} made, {skipped} skipped, {failed} failed; manifest lists {len(manifest['keys'])} keys")
     return 2 if failed else 0

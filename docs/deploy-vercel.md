@@ -27,6 +27,8 @@ The app is a static Vite site, so Vercel needs no server settings (`vercel.json`
 
 `.github/workflows/pages.yml` builds and publishes the site on every push to `main`
 (live at `https://<user>.github.io/<repo>/`). In the repository: Settings, Pages, Source: GitHub Actions.
-Pages has no Python functions, so `/api/tts` is missing there and Alrashed speaks with the device voice.
+Pages has no Python functions, so `/api/tts` is missing there. Instead the workflow records every fixed line with the
+Edge neural voice during the build (`tools/generate_voice_edge.py`, about 600 MP3 files, cached between runs), so Alrashed
+speaks in any browser. Only free-typed creative-mode answers use the device voice.
 To use the Edge voice, deploy once on Vercel and set a repository variable `VITE_TTS_URL` to
 `https://<your-site>.vercel.app/api/tts`.

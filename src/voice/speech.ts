@@ -217,7 +217,7 @@ let unlocked = false;
 function gestureSeen(): boolean {
   if (unlocked) return true;
   const ua = (navigator as unknown as { userActivation?: { hasBeenActive: boolean } }).userActivation;
-  return !!ua?.hasBeenActive;
+  return ua ? !!ua.hasBeenActive : sawGesture;
 }
 
 function getCtx(): AudioContext | null {
@@ -571,7 +571,17 @@ function warnOnce(id: string, msg: string) {
 export function isVoiceLocked(): boolean {
   if (!isBrowser || unlocked) return false;
   const ua = (navigator as unknown as { userActivation?: { hasBeenActive: boolean } }).userActivation;
-  return !!ua && !ua.hasBeenActive;
+  // Safari (and older browsers) have no userActivation: count our own first tap instead.
+  return ua ? !ua.hasBeenActive : !sawGesture;
+}
+
+let sawGesture = false;
+if (isBrowser) {
+  const mark = () => {
+    sawGesture = true;
+    for (const e of ['pointerdown', 'touchend', 'mousedown', 'keydown', 'click']) window.removeEventListener(e, mark, true);
+  };
+  for (const e of ['pointerdown', 'touchend', 'mousedown', 'keydown', 'click']) window.addEventListener(e, mark, true);
 }
 
 /**

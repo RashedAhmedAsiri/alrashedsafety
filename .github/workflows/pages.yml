@@ -25,6 +25,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # Alrashed's recorded voice: every fixed line is spoken once here with Microsoft's free Edge neural voice
+      # and shipped as plain MP3 files, so it plays in any browser with no device voice. Cached between runs;
+      # if the service is unreachable the site still deploys and falls back to the device voice.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install edge-tts==7.3.1
+      - uses: actions/cache@v4
+        with:
+          path: public/audio/voice
+          key: voice-${{ hashFiles('src/content/**', 'tools/generate_voice*') }}
+          restore-keys: voice-
+      - name: Record voice files
+        continue-on-error: true
+        run: |
+          node tools/generate_voice.mjs --dump=lines.json
+          python tools/generate_voice_edge.py --lines=lines.json --jobs=6 | tail -25
+          echo "voice files: $(ls public/audio/voice/*.mp3 2>/dev/null | wc -l)" >> "$GITHUB_STEP_SUMMARY"
       - run: npm run build
         env:
           # Optional: set a repository variable VITE_TTS_URL to a deployed /api/tts (see docs/deploy-vercel.md).
